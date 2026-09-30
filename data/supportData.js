@@ -1,43 +1,48 @@
 const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config(); // Carrega as variáveis do .env
+require('dotenv').config();
 
-// Configuração do Supabase Client
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
+// Use a Service Role Key apenas nesta API. Ela nunca deve ser exposta no frontend.
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
+const tableName = process.env.SUPPORT_TABLE_NAME || 'support-messagens';
+const categoryColumn = process.env.SUPPORT_CATEGORY_COLUMN || 'categoria';
+const messageColumn = process.env.SUPPORT_MESSAGE_COLUMN || 'mensagem';
+const createdAtColumn = Object.prototype.hasOwnProperty.call(process.env, 'SUPPORT_CREATED_AT_COLUMN')
+  ? process.env.SUPPORT_CREATED_AT_COLUMN
+  : 'created_at';
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error("ERRO: SUPABASE_URL e SUPABASE_KEY precisam estar definidos no arquivo .env");
-  process.exit(1);
+let supabase;
+
+function getSupabaseClient() {
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY precisam estar configuradas.');
+  }
+
+  if (!supabase) {
+    supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+  }
+
+  return supabase;
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-/**
- * Salva uma nova mensagem de suporte no Supabase.
- * @param {string} category Categoria da mensagem (bug, sugestao, etc)
- * @param {string} message Conteúdo da mensagem
- */
 async function saveSupportMessage(category, message) {
-  try {
-    const { data, error } = await supabase
-      .from('support_messages')
-      .insert([
-        { 
-          category: category, 
-          message: message,
-          created_at: new Date().toISOString()
-        }
-      ]);
+  const record = {
+    [categoryColumn]: category,
+    [messageColumn]: message
+  };
 
-    if (error) {
-      console.error("Erro ao salvar mensagem no Supabase:", error);
-      throw error;
-    }
+  // Deixe a variável vazia se a tabela já tiver DEFAULT para created_at.
+  if (createdAtColumn) record[createdAtColumn] = new Date().toISOString();
 
-    return data;
-  } catch (err) {
-    console.error("Falha na camada de dados (supportData):", err);
-    throw err;
+  const { error } = await getSupabaseClient()
+    .from(tableName)
+    .insert(record);
+
+  if (error) {
+    console.error('Erro ao salvar mensagem no Supabase:', error);
+    throw error;
   }
 }
 

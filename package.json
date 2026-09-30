@@ -1,23 +1,25 @@
 {
-  "name": "backend-suporte-anime-house",
+  "name": "Zenkai-Suporte",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "test": "node server.js"
+    "start": "node server.js",
+    "dev": "node server.js",
+    "vercel-build": "node -e \"console.log('API pronta para a Vercel')\""
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ViselBrx/Backend-Suporte-Anime-House.git"
+    "url": "git+https://github.com/ViselBrx/Zenkai-Suporte.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/ViselBrx/Backend-Suporte-Anime-House/issues"
+    "url": "https://github.com/ViselBrx/Zenkai-Suporte/issues"
   },
-  "homepage": "https://github.com/ViselBrx/Backend-Suporte-Anime-House#readme",
+  "homepage": "https://github.com/ViselBrx/Zenkai-Suporte#readme",
   "dependencies": {
     "@supabase/supabase-js": "^2.108.2",
     "cors": "^2.8.6",
