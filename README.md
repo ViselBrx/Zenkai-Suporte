@@ -1,6 +1,6 @@
 # API de suporte da Zenkai
 
-Recebe `POST /api/support` com o JSON abaixo e registra a mensagem no Supabase:
+Recebe `POST /functions/v1/support` e registra a mensagem no Supabase:
 
 ```json
 {
@@ -9,58 +9,39 @@ Recebe `POST /api/support` com o JSON abaixo e registra a mensagem no Supabase:
 }
 ```
 
-## Configuração local
+## Deploy no Supabase
 
-1. Copie `.env.example` para `.env` e preencha os valores.
-2. Rode `npm install` e `npm start`.
-3. Verifique `http://localhost:3000/api/status`.
-
-## Variáveis da Vercel
-
-Cadastre todas no projeto da API, para **Production**, **Preview** e **Development**:
-
-| Variável | Valor |
-| --- | --- |
-| `SUPABASE_URL` | URL do seu projeto Supabase |
-| `SUPABASE_SERVICE_ROLE_KEY` | chave `service_role` secreta do Supabase |
-| `SUPPORT_TABLE_NAME` | `support-messagens` (ou o nome exato da sua tabela) |
-| `SUPPORT_CATEGORY_COLUMN` | `categoria` |
-| `SUPPORT_MESSAGE_COLUMN` | `mensagem` |
-| `SUPPORT_CREATED_AT_COLUMN` | `created_at` — deixe vazio se a coluna não existir |
-| `ALLOWED_ORIGINS` | domínio(s) do frontend, separados por vírgula |
-
-Se a tabela usa `category` e `message`, altere as duas variáveis de coluna; não é necessário mudar o código.
-
-## Deploy pela CLI
-
-No terminal, dentro desta pasta:
+Instale a [Supabase CLI](https://supabase.com/docs/guides/cli) e, no terminal dentro desta pasta, vincule o projeto:
 
 ```powershell
-npm install
-npx vercel login
-npx vercel
-npx vercel env add SUPABASE_URL production
-npx vercel env add SUPABASE_SERVICE_ROLE_KEY production
-npx vercel env add SUPPORT_TABLE_NAME production
-npx vercel env add SUPPORT_CATEGORY_COLUMN production
-npx vercel env add SUPPORT_MESSAGE_COLUMN production
-npx vercel env add SUPPORT_CREATED_AT_COLUMN production
-npx vercel env add ALLOWED_ORIGINS production
-npx vercel --prod
+supabase login
+supabase link --project-ref SEU_PROJECT_REF
 ```
 
-No primeiro `npx vercel`, crie um projeto novo e mantenha esta pasta como diretório raiz. O último comando responde com a URL final, por exemplo `https://zenkai-suporte.vercel.app`.
+As variáveis `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` são fornecidas pelo ambiente do Supabase. Configure as variáveis opcionais da tabela e os domínios permitidos:
 
-Depois, no projeto principal da Zenkai na Vercel, defina `SUPPORT_API_URL` com a URL final mais `/api/support`, por exemplo:
+```powershell
+supabase secrets set SUPPORT_TABLE_NAME=support-messagens SUPPORT_CATEGORY_COLUMN=categoria SUPPORT_MESSAGE_COLUMN=mensagem SUPPORT_CREATED_AT_COLUMN=created_at ALLOWED_ORIGINS=https://SEU-SITE.com
+```
+
+Se a tabela usar `category` e `message`, altere `SUPPORT_CATEGORY_COLUMN` e `SUPPORT_MESSAGE_COLUMN`. Se ela preencher `created_at` automaticamente, configure `SUPPORT_CREATED_AT_COLUMN` como vazio. `ALLOWED_ORIGINS` aceita vários domínios separados por vírgula; sem essa variável, a função aceita qualquer origem.
+
+Faça o deploy da função:
+
+```powershell
+supabase functions deploy support
+```
+
+O endpoint ficará em:
 
 ```text
-https://zenkai-suporte.vercel.app/api/support
+https://SEU_PROJECT_REF.supabase.co/functions/v1/support
 ```
 
-Faça um novo deploy do projeto principal para que o formulário passe a usar essa URL.
+Configure o frontend para enviar o formulário diretamente a esse endereço.
 
-## Teste em produção
+## Teste
 
 ```powershell
-Invoke-RestMethod -Method Post -Uri "https://SEU-PROJETO.vercel.app/api/support" -ContentType "application/json" -Body '{"categoria":"sugestao","mensagem":"Teste de envio da API de suporte."}'
+Invoke-RestMethod -Method Post -Uri "https://SEU_PROJECT_REF.supabase.co/functions/v1/support" -ContentType "application/json" -Body '{"categoria":"sugestao","mensagem":"Teste de envio da API de suporte."}'
 ```

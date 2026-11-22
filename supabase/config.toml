@@ -1,0 +1,4 @@
+project_id = "zenkai-suporte"
+
+[functions.support]
+verify_jwt = false
